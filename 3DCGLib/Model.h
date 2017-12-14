@@ -23,11 +23,11 @@ namespace Lib
         HRESULT init();
         ComPtr<ID3DBlob> shaderCompile(WCHAR* filename, LPCSTR entryPoint, LPCSTR shaderModel);
 
-        struct SimpleVertex
-        {
-            float pos[3];
-            float color[4];
-        };
+        //struct SimpleVertex
+        //{
+        //    float pos[3];
+        //    float color[4];
+        //};
 
         struct ConstantBuffer
         {

@@ -1,5 +1,6 @@
 #include <d3dcompiler.h>
 #include "Model.h"
+#include "ObjLoader.h"
 
 namespace Lib
 {
@@ -96,28 +97,36 @@ namespace Lib
         }
 
         // VertexBufferの定義
-        SimpleVertex vertices[] =
-        {
-            { { -1.0f,  1.0f, -1.0f },{ 0.0f, 0.0f, 1.0f, 1.0f } },
-            { {  1.0f,  1.0f, -1.0f },{ 0.0f, 1.0f, 0.0f, 1.0f } },
-            { {  1.0f,  1.0f,  1.0f },{ 0.0f, 1.0f, 1.0f, 1.0f } },
-            { { -1.0f,  1.0f,  1.0f },{ 1.0f, 0.0f, 0.0f, 1.0f } },
-            { { -1.0f, -1.0f, -1.0f },{ 1.0f, 0.0f, 1.0f, 1.0f } },
-            { {  1.0f, -1.0f, -1.0f },{ 1.0f, 1.0f, 0.0f, 1.0f } },
-            { {  1.0f, -1.0f,  1.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } },
-            { { -1.0f, -1.0f,  1.0f },{ 0.0f, 0.0f, 0.0f, 1.0f } },
-        };
+        //SimpleVertex vertices[] =
+        //{
+        //    { { -1.0f,  1.0f, -1.0f },{ 0.0f, 0.0f, 1.0f, 1.0f } },
+        //    { {  1.0f,  1.0f, -1.0f },{ 0.0f, 1.0f, 0.0f, 1.0f } },
+        //    { {  1.0f,  1.0f,  1.0f },{ 0.0f, 1.0f, 1.0f, 1.0f } },
+        //    { { -1.0f,  1.0f,  1.0f },{ 1.0f, 0.0f, 0.0f, 1.0f } },
+        //    { { -1.0f, -1.0f, -1.0f },{ 1.0f, 0.0f, 1.0f, 1.0f } },
+        //    { {  1.0f, -1.0f, -1.0f },{ 1.0f, 1.0f, 0.0f, 1.0f } },
+        //    { {  1.0f, -1.0f,  1.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } },
+        //    { { -1.0f, -1.0f,  1.0f },{ 0.0f, 0.0f, 0.0f, 1.0f } },
+        //};
 
+        ObjMesh mesh;
+
+        ObjLoader loader;
+        if (!loader.LoadMesh("Mesh/Test.obj", mesh)) {
+            MessageBox(nullptr, L"LoadMesh()の失敗", L"Error", MB_OK);
+            return E_FAIL;
+        }
+        // vectorの要素のサイズと配列のサイズが同じか調べる
         D3D11_BUFFER_DESC bd;
         ZeroMemory(&bd, sizeof(bd));
         bd.Usage = D3D11_USAGE_DEFAULT;
-        bd.ByteWidth = sizeof(SimpleVertex) * 8;
+        bd.ByteWidth = sizeof(Vec3) * 8;
         bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
         bd.CPUAccessFlags = 0;
 
         D3D11_SUBRESOURCE_DATA initData;
         ZeroMemory(&initData, sizeof(initData));
-        initData.pSysMem = vertices;
+        initData.pSysMem = mesh.vertexes.data();
         hr = directX.getDevice()->CreateBuffer(&bd, &initData, vertexBuffer.GetAddressOf());
         if (FAILED(hr)) {
             MessageBox(nullptr, L"createBuffer()の失敗", L"Error", MB_OK);
@@ -125,36 +134,36 @@ namespace Lib
         }
 
         // VertexBufferをセット
-        UINT stride = sizeof(SimpleVertex);
+        UINT stride = sizeof(Vec3);
         UINT offset = 0;
         directX.getDeviceContext()->IASetVertexBuffers(0, 1, vertexBuffer.GetAddressOf(), &stride, &offset);
 
         // 頂点バッファの作成
-        WORD indices[] =
-        {
-            3, 1, 0,
-            2, 1, 3,
+        //WORD indices[] =
+        //{
+        //    3, 1, 0,
+        //    2, 1, 3,
 
-            0, 5, 4,
-            1, 5, 0,
+        //    0, 5, 4,
+        //    1, 5, 0,
 
-            3, 4, 7,
-            0, 4, 3,
+        //    3, 4, 7,
+        //    0, 4, 3,
 
-            1, 6, 5,
-            2, 6, 1,
+        //    1, 6, 5,
+        //    2, 6, 1,
 
-            2, 7, 6,
-            3, 7, 2,
+        //    2, 7, 6,
+        //    3, 7, 2,
 
-            6, 4, 5,
-            7, 4, 6,
-        };
+        //    6, 4, 5,
+        //    7, 4, 6,
+        //};
         bd.Usage = D3D11_USAGE_DEFAULT;
-        bd.ByteWidth = sizeof(WORD) * 36; // 36頂点、12三角形
+        bd.ByteWidth = sizeof(unsigned int) * 36;//mesh.face.vertexIndex.size(); // 36頂点、12三角形
         bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
         bd.CPUAccessFlags = 0;
-        initData.pSysMem = indices;
+        initData.pSysMem = mesh.face.vertexIndex.data();
         hr = directX.getDevice()->CreateBuffer(&bd, &initData, indexBuffer.GetAddressOf());
         if (FAILED(hr)) {
             MessageBox(nullptr, L"createBuffer()の失敗", L"Error", MB_OK);
