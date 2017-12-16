@@ -7,8 +7,8 @@ float4 PS(VS_OUTPUT input) : SV_Target
 {
     float4 color;
     color.r = 1.0f;
-    color.g = 0.0f;
-    color.b = 0.0f;
+    color.g = 1.0f;
+    color.b = 1.0f;
     color.a = 1.0f;
     return color;
 }
