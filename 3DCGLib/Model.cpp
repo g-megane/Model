@@ -30,6 +30,7 @@ namespace Lib
         directX.getDeviceContext()->VSSetShader(vertexShader.Get(), nullptr, 0);
         directX.getDeviceContext()->VSSetConstantBuffers(0, 1, constantBuffer.GetAddressOf());
         directX.getDeviceContext()->PSSetShader(pixelShader.Get(), nullptr, 0);
+
         directX.getDeviceContext()->DrawIndexed(36, 0, 0);
     }
 
@@ -68,14 +69,13 @@ namespace Lib
         // InputLayouの定義
         D3D11_INPUT_ELEMENT_DESC layout[] = {
             { "POSITION", 0,    DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-            {    "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         };
         UINT numElements = ARRAYSIZE(layout);
 
         // InputLayoutの作成
         hr = directX.getDevice()->CreateInputLayout(layout, numElements, VSBlob->GetBufferPointer(), VSBlob->GetBufferSize(), vertexLayout.GetAddressOf());
         if (FAILED(hr)) {
-            MessageBox(NULL, L"CreateInputLayoutの失敗(VS)", L"Error", MB_OK);
+            MessageBox(nullptr, L"CreateInputLayoutの失敗(VS)", L"Error", MB_OK);
             return hr;
         }
 
@@ -124,7 +124,7 @@ namespace Lib
         bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
         bd.CPUAccessFlags = 0;
 
-        D3D11_SUBRESOURCE_DATA initData;
+        D3D11_SUBRESOURCE_DATA initData = {0};
         ZeroMemory(&initData, sizeof(initData));
         initData.pSysMem = mesh.vertexes.data();
         hr = directX.getDevice()->CreateBuffer(&bd, &initData, vertexBuffer.GetAddressOf());
@@ -160,7 +160,7 @@ namespace Lib
         //    7, 4, 6,
         //};
         bd.Usage = D3D11_USAGE_DEFAULT;
-        bd.ByteWidth = sizeof(unsigned int) * 36;//mesh.face.vertexIndex.size(); // 36頂点、12三角形
+        bd.ByteWidth = sizeof(WORD) * 36;//mesh.face.vertexIndex.size(); // 36頂点、12三角形
         bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
         bd.CPUAccessFlags = 0;
         initData.pSysMem = mesh.face.vertexIndex.data();
