@@ -2,6 +2,7 @@
 #ifndef OBJLOADER_H
 #define OBJLOADER_H
 
+#include <Windows.h>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -25,9 +26,9 @@ namespace Lib
 
     struct Face
     {
-        std::vector<unsigned int> vertexIndex;
-        std::vector<unsigned int> uvIndex;
-        std::vector<unsigned int> normalIndex;
+        std::vector<WORD> vertexIndex;
+        std::vector<WORD> uvIndex;
+        std::vector<WORD> normalIndex;
     };
 
     struct ObjMesh
