@@ -67,20 +67,48 @@ namespace Lib
             else if (buf[0] == 'f') {
                 auto tmp = split(buf, ' ');
                 //TODO: 1行に3ブロックじゃないと動かない
-                auto indexes1 = split(tmp[1], '/');
-                mesh.face.vertexIndex.push_back(std::stoi(indexes1[0]));
-                mesh.face.uvIndex.push_back(std::stoi(indexes1[1]));
-                mesh.face.normalIndex.push_back(std::stoi(indexes1[2]));
-                auto indexes2 = split(tmp[2], '/');
-                mesh.face.vertexIndex.push_back(std::stoi(indexes2[0]));
-                mesh.face.uvIndex.push_back(std::stoi(indexes2[1]));
-                mesh.face.normalIndex.push_back(std::stoi(indexes2[2]));
-                auto indexes3 = split(tmp[3], '/');
-                mesh.face.vertexIndex.push_back(std::stoi(indexes3[0]));
-                mesh.face.uvIndex.push_back(std::stoi(indexes3[1]));
-                mesh.face.normalIndex.push_back(std::stoi(indexes3[2]));
+                // 配列のインデックスは0から始まり、objは1から始まるので各インデックスを-1する
+
+                if (tmp[1].find("//") == std::string::npos) {
+                    auto indexes1 = split(tmp[1], '/');
+                    mesh.face.vertexIndex.push_back(std::stoi(indexes1[0]) - 1);
+                    mesh.face.uvIndex.push_back(std::stoi(indexes1[1]) - 1);
+                    mesh.face.normalIndex.push_back(std::stoi(indexes1[2]) - 1);
+                    auto indexes2 = split(tmp[2], '/');
+                    mesh.face.vertexIndex.push_back(std::stoi(indexes2[0]) - 1);
+                    mesh.face.uvIndex.push_back(std::stoi(indexes2[1]) - 1);
+                    mesh.face.normalIndex.push_back(std::stoi(indexes2[2]) - 1);
+                    auto indexes3 = split(tmp[3], '/');
+                    mesh.face.vertexIndex.push_back(std::stoi(indexes3[0]) - 1);
+                    mesh.face.uvIndex.push_back(std::stoi(indexes3[1]) - 1);
+                    mesh.face.normalIndex.push_back(std::stoi(indexes3[2]) - 1);
+                    if (tmp.size() == 5) {
+                        auto indexes4 = split(tmp[4], '/');
+                        mesh.face.vertexIndex.push_back(std::stoi(indexes3[0]) - 1);
+                        mesh.face.uvIndex.push_back(std::stoi(indexes3[1]) - 1);
+                        mesh.face.normalIndex.push_back(std::stoi(indexes3[2]) - 1);
+                    }
+                }
+                else {
+                    auto indexes1 = split(tmp[1], '/');
+                    mesh.face.vertexIndex.push_back(std::stoi(indexes1[0]) - 1);
+                    mesh.face.normalIndex.push_back(std::stoi(indexes1[2]) - 1);
+                    auto indexes2 = split(tmp[2], '/');
+                    mesh.face.vertexIndex.push_back(std::stoi(indexes2[0]) - 1);
+                    mesh.face.normalIndex.push_back(std::stoi(indexes2[2]) - 1);
+                    auto indexes3 = split(tmp[3], '/');
+                    mesh.face.vertexIndex.push_back(std::stoi(indexes3[0]) - 1);
+                    mesh.face.normalIndex.push_back(std::stoi(indexes3[2]) - 1);
+                    if (tmp.size() == 5) {
+                        auto indexes4 = split(tmp[4], '/');
+                        mesh.face.vertexIndex.push_back(std::stoi(indexes3[0]) - 1);
+                        mesh.face.normalIndex.push_back(std::stoi(indexes3[2]) - 1);
+                    }
+                }
             }
         }
+
+
 
         return true;
     }
@@ -107,5 +135,44 @@ namespace Lib
         }
 
         return result;
+    }
+
+    // 四角形ポリゴンから三角形ポリゴンへ変更
+    void ObjLoader::combertPoligon3(ObjMesh &_mesh)
+    {
+        int pn = 0;
+        auto num = _mesh.face.vertexIndex.size();
+        std::vector<WORD> vIndexTmp;
+
+        for (int i = 0; i < num; ) {
+            pn = _mesh.face.vertexIndex[i];
+            ++i;
+            switch (pn)
+            {
+            case 3:
+                vIndexTmp.push_back(_mesh.face.vertexIndex[i]);
+                vIndexTmp.push_back(_mesh.face.vertexIndex[i + 1]);
+                vIndexTmp.push_back(_mesh.face.vertexIndex[i + 2]);
+                break;
+            case 4:
+                vIndexTmp.push_back(_mesh.face.vertexIndex[i]);
+                vIndexTmp.push_back(_mesh.face.vertexIndex[i + 1]);
+                vIndexTmp.push_back(_mesh.face.vertexIndex[i + 2]);
+                vIndexTmp.push_back(_mesh.face.vertexIndex[i]);
+                vIndexTmp.push_back(_mesh.face.vertexIndex[i + 2]);
+                vIndexTmp.push_back(_mesh.face.vertexIndex[i + 3]);
+                break;
+            default:
+                for (int j = 0; j <= pn - 3; ++j) {
+                    vIndexTmp.push_back(_mesh.face.vertexIndex[i]);
+                    vIndexTmp.push_back(_mesh.face.vertexIndex[i + 1]);
+                    vIndexTmp.push_back(_mesh.face.vertexIndex[i + 2]);
+                }
+                break;
+            }
+            i += pn;
+        }
+
+        _mesh.face.vertexIndex = vIndexTmp;
     }
 }

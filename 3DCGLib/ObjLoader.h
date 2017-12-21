@@ -51,6 +51,7 @@ namespace Lib
     private:
         void ignoreSpace(std::string &buf);
         std::vector<std::string> split(const std::string& input, char delimiter);
+        void combertPoligon3(ObjMesh &_mesh);
     };
 }
 
