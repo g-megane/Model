@@ -8,6 +8,7 @@ namespace Lib
     Model::Model()
     {
         world = Matrix::Identify;
+        vertexCount = 0;
         init();
     }
 
@@ -31,7 +32,7 @@ namespace Lib
         directX.getDeviceContext()->VSSetConstantBuffers(0, 1, constantBuffer.GetAddressOf());
         directX.getDeviceContext()->PSSetShader(pixelShader.Get(), nullptr, 0);
 
-        directX.getDeviceContext()->DrawIndexed(36, 0, 0);
+        directX.getDeviceContext()->DrawIndexed(vertexCount, 0, 0);
     }
 
     // ワールド行列を設定
@@ -96,23 +97,10 @@ namespace Lib
             return hr;
         }
 
-        // VertexBufferの定義
-        //SimpleVertex vertices[] =
-        //{
-        //    { { -1.0f,  1.0f, -1.0f },{ 0.0f, 0.0f, 1.0f, 1.0f } },
-        //    { {  1.0f,  1.0f, -1.0f },{ 0.0f, 1.0f, 0.0f, 1.0f } },
-        //    { {  1.0f,  1.0f,  1.0f },{ 0.0f, 1.0f, 1.0f, 1.0f } },
-        //    { { -1.0f,  1.0f,  1.0f },{ 1.0f, 0.0f, 0.0f, 1.0f } },
-        //    { { -1.0f, -1.0f, -1.0f },{ 1.0f, 0.0f, 1.0f, 1.0f } },
-        //    { {  1.0f, -1.0f, -1.0f },{ 1.0f, 1.0f, 0.0f, 1.0f } },
-        //    { {  1.0f, -1.0f,  1.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } },
-        //    { { -1.0f, -1.0f,  1.0f },{ 0.0f, 0.0f, 0.0f, 1.0f } },
-        //};
-
+        // Objファイルの読み込み
         ObjMesh mesh;
-
         ObjLoader loader;
-        if (!loader.LoadMesh("Mesh/Test.obj", mesh)) {
+        if (!loader.LoadMesh("Mesh/human.obj", mesh)) {
             MessageBox(nullptr, L"LoadMesh()の失敗", L"Error", MB_OK);
             return E_FAIL;
         }
@@ -120,13 +108,13 @@ namespace Lib
         D3D11_BUFFER_DESC bd;
         ZeroMemory(&bd, sizeof(bd));
         bd.Usage = D3D11_USAGE_DEFAULT;
-        bd.ByteWidth = sizeof(Vec3) * 8;
+        bd.ByteWidth = sizeof(Vec3) * mesh.vertexes.size();
         bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
         bd.CPUAccessFlags = 0;
 
         D3D11_SUBRESOURCE_DATA initData = {0};
         ZeroMemory(&initData, sizeof(initData));
-        initData.pSysMem = mesh.vertexes.data();
+        initData.pSysMem = &mesh.vertexes[0];
         hr = directX.getDevice()->CreateBuffer(&bd, &initData, vertexBuffer.GetAddressOf());
         if (FAILED(hr)) {
             MessageBox(nullptr, L"createBuffer()の失敗", L"Error", MB_OK);
@@ -138,32 +126,13 @@ namespace Lib
         UINT offset = 0;
         directX.getDeviceContext()->IASetVertexBuffers(0, 1, vertexBuffer.GetAddressOf(), &stride, &offset);
 
-        // 頂点バッファの作成
-        //WORD indices[] =
-        //{
-        //    3, 1, 0,
-        //    2, 1, 3,
-
-        //    0, 5, 4,
-        //    1, 5, 0,
-
-        //    3, 4, 7,
-        //    0, 4, 3,
-
-        //    1, 6, 5,
-        //    2, 6, 1,
-
-        //    2, 7, 6,
-        //    3, 7, 2,
-
-        //    6, 4, 5,
-        //    7, 4, 6,
-        //};
+        // インデックスバッファの作成
+        vertexCount = mesh.face.vertexIndex.size();
         bd.Usage = D3D11_USAGE_DEFAULT;
-        bd.ByteWidth = sizeof(WORD) * 36;//mesh.face.vertexIndex.size(); // 36頂点、12三角形
+        bd.ByteWidth = sizeof(WORD) * vertexCount; // 36頂点、12三角形
         bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
         bd.CPUAccessFlags = 0;
-        initData.pSysMem = mesh.face.vertexIndex.data();
+        initData.pSysMem = &mesh.face.vertexIndex[0];
         hr = directX.getDevice()->CreateBuffer(&bd, &initData, indexBuffer.GetAddressOf());
         if (FAILED(hr)) {
             MessageBox(nullptr, L"createBuffer()の失敗", L"Error", MB_OK);
